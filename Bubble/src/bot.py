@@ -29,6 +29,14 @@ class MyBot(BaseAgent):
         # Keep our boost pad info updated with which pads are currently active
         self.boost_pad_tracker.update_boost_status(packet)
 
+        # Get boost pad info
+        field_info = self.get_field_info()
+        big_pads = []
+        for i in range(field_info.num_boosts):
+            pad = field_info.boost_pads[i]
+            if pad.is_full_boost:
+                big_pads.append(pad)
+
         # This is good to keep at the beginning of get_output. It will allow you to continue
         # any sequences that you may have started during a previous call to get_output.
         if self.active_sequence is not None and not self.active_sequence.done:
@@ -82,5 +90,89 @@ class MyBot(BaseAgent):
             ControlStep(duration=0.8, controls=SimpleControllerState()),
         ])
 
+    def begin_back_flip(self, packet):
+        # Do a back flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState()),
+        ])
+
+    def begin_right_flip(self, packet):
+        # Do a right flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, yaw=1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState()),
+        ])
+    
+    def begin_left_flip(self, packet):
+        # Do a left flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, yaw=-1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState()),
+        ])
+    
+    def begin_right_forward_flip(self, packet):
+        # Do a left flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=-1, yaw=1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState())
+
+        ])
+
+    def begin_right_backward_flip(self, packet):
+        # Do a left flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=1, yaw=1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState())
+
+        ])
+
+    def begin_left_forward_flip(self, packet):
+        # Do a left flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=1, yaw=1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState())
+
+        ])
+
+    def begin_left_backward_flip(self, packet):
+        # Do a left flip. We will be committed to this for a few seconds and the bot will ignore other
+        # logic during that time because we are setting the active_sequence.
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+            ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=1, yaw=-1)),
+            ControlStep(duration=0.8, controls=SimpleControllerState())
+
+        ])
+
         # Return the controls associated with the beginning of the sequence so we can start right away.
         return self.active_sequence.tick(packet)
+    
+    def get_closest_boost(self, big_pads, car_location):
+        closest_pad = big_pads[0]
+        closest_distance = 9999999
+        for i in range(len(big_pads)):
+            distance = car_location - big_pads[i]
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_pad = big_pads[i]
+        return closest_pad
